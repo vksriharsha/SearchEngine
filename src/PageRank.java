@@ -1,3 +1,4 @@
+import javax.management.remote.rmi._RMIConnection_Stub;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -42,9 +43,21 @@ public class PageRank {
                     nodeLinks.add(link);
                     pageRankGraph.put(nodename, nodeLinks);
 
+                    if(pageRankGraph.get(link) == null){
+                        pageRankGraph.put(link, new ArrayList<>());
+//                        stringToInt.put(v, pageRankGraph.size());
+//                        intToString.put(pageRankGraph.size(), v);
+                    }
+
                 } else {
                     nodeLinks.add(link);
                     pageRankGraph.put(nodename, nodeLinks);
+
+                    if(pageRankGraph.get(link) == null){
+                        pageRankGraph.put(link, new ArrayList<>());
+//                        stringToInt.put(v, pageRankGraph.size());
+//                        intToString.put(pageRankGraph.size(), v);
+                    }
                 }
             }
 
@@ -55,6 +68,12 @@ public class PageRank {
 
         pageRank = computePageRank();
 
+//        for(int i=0; i < n; i++) {
+//
+//            System.out.println(pageRank[i]);
+//
+//        }
+
     }
 
     // Methods
@@ -64,6 +83,7 @@ public class PageRank {
         for (String vertex : pageRankGraph.keySet()){
 //            Integer hashCode = (Integer)vertex.hashCode();
             stringToInt.put(vertex, i);
+
             intToString.put(i, vertex);
             i++;
         }
@@ -152,19 +172,18 @@ public class PageRank {
         double norm = 0;
         for (int i = 0; i < n; i++) {
             norm += Math.abs(pNext[i] - pCurrent[i]);
-            if(norm < approxError){
-                foo = true;
-                break;
-            }
+        }
+        if(norm < approxError){
+            foo = true;
         }
         return foo;
 
     }
 
 
-    // gets an int representing a vertex of the graph as parameter and returns its page rank which is a double
-    public double pageRankOf (int idx){
-
+    // gets an String representing a vertex of the graph as parameter and returns its page rank which is a double
+    public double pageRankOf (String vertex){
+        int idx = stringToInt.get(vertex);
         return pageRank[idx];
     }
 
@@ -177,36 +196,69 @@ public class PageRank {
         return edges;
     }
 
-    // gets an integer k as parameter and returns an array (of ints) of pages with top k page ranks
-    public int[] topKPageRank(int k) {
+    // gets an integer k as parameter and returns an array (of String) of pages with top k page ranks
+    public String[] topKPageRank(int k) {
 
         String[] stringRank = new String[k];
-        int[] intRank = new int[k];
-        Set<String> taken = new HashSet<>();
-        for (int i = 0; i < k; i++) {
-            int max = 0;
-            while (taken.contains(intToString.get(max)))
-                max++;
+        int[] indices = new int[n];
+//        double[] sortedRank = pageRank.clone();
+//
+//        Double[] sortedRankDbl = new Double[sortedRank.length];
+//
+//        for(int i=0; i<sortedRank.length; i++){
+//            sortedRankDbl[i] = sortedRank[i];
+//        }
+//
+//        //sort in descending order
+//        Arrays.sort(sortedRankDbl, Collections.reverseOrder());
+//
+//        for (int index = 0; index < n; index++)
+//            indices[index] = Arrays.binarySearch(sortedRankDbl, pageRank[index]);
+//
+//        for (int i = 0; i < k; i++) {
+//            stringRank[i] = intToString.get(indices[i]);
+//        }
+//
+//        return stringRank;
 
-            for (int j = max + 1; j < n; j++) {
-                if (!taken.contains(intToString.get(j)) && pageRankOf(max) < pageRankOf(j)) {
-                    max = j;
-                }
+        final Map<Integer, Double> map = new HashMap<Integer, Double>();
+        for (int i = 0; i < n; i++) {
+            map.put(i, pageRank[i]);
+        }
+        final List<Map.Entry> list = new LinkedList<Map.Entry>(map.entrySet());
+        Collections.sort(list, new Comparator() {
+            @Override
+            public int compare(final Object o1, final Object o2) {
+                return 0 - ((Comparable) ((Map.Entry) o1).getValue()).compareTo(((Map.Entry) o2).getValue());
             }
-            taken.add(intToString.get(max));
-            intRank[i] = stringToInt.get(max);
+        });
+        for (int i = 0; i < list.size(); i++) {
+
+            indices[i] = (Integer) list.get(i).getKey();
         }
 
-//        for (int i = 0; i < k; i++) {
-//
+        //here we have result, to test it:
+//        for (final int element : indices) {
+//            System.out.println(element);
 //        }
 
-        return intRank;
+        for (int i = 0; i < k; i++) {
+            stringRank[i] = intToString.get(indices[i]);
+        }
+
+        return stringRank;
+
     }
 
     public static void main(String[] args) throws FileNotFoundException {
         PageRank pageRank = new PageRank("G:\\535\\PA3\\WikiSportsGraph.txt", 0.01);
-        System.out.println(pageRank.pageRank);
+        int k = 10;
+        String [] topKPages = pageRank.topKPageRank(k);
+        System.out.println("stringRank:");
+
+        for (int i= 0; i < k; i++){
+            System.out.println(topKPages[i]);
+        }
     }
 
 }
