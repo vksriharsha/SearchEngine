@@ -9,8 +9,8 @@ public class QueryProcessor {
 
 
     /* Returns an ArrayList consisting of top k documents that are relevant to the query */
-    public ArrayList<String> topKDocs(String query, int k){
-        pi = new PositionalIndex("/Users/harshavk/Desktop/gitrepos/PA3_Docs/IR");
+    public ArrayList<String> topKDocs(String query, int k, String folder){
+        pi = new PositionalIndex(folder);
         String[] topKDocsArray = new String[k];
         double[] topKDocsRelevanceScores = new double[k];
         String[] allDocs = pi.getAllDocs();
@@ -54,7 +54,7 @@ public class QueryProcessor {
     public static void main(String[] args) {
         QueryProcessor qp = new QueryProcessor();
         int k=10;
-        ArrayList<String> topdocs = qp.topKDocs("recovery from injury", k);
+        ArrayList<String> topdocs = qp.topKDocs("Baseball World Cup", k, "/Users/harshavk/Desktop/gitrepos/PA3_Docs/IR");
 
         System.out.println("Top "+k+" documents:");
         System.out.println("----------------");
