@@ -3,6 +3,7 @@ import com.sun.xml.internal.messaging.saaj.packaging.mime.util.QEncoderStream;
 import java.util.ArrayList;
 
 
+//QueryProcessor class -  Searches the document base with the given query
 public class QueryProcessor {
 
     private PositionalIndex pi;
