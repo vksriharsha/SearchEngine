@@ -8,12 +8,14 @@ public class PositionalIndex {
     private String[] allDocs;
     private HashMap<String, Integer> allDocsHash;
     private HashMap<String,Double[]> allScores;
+    private HashMap<String,Integer> queryTermCount;
 
     /* Constructor */
     public PositionalIndex(String folderName){
         this.folderName = folderName;
         this.invertedIndex = new HashMap<String, HashMap<Integer, ArrayList<Integer>>>();
         this.allScores = new HashMap<String,Double[]>();
+        this.queryTermCount = new HashMap<String,Integer>();
         preprocess();
     }
 
@@ -150,6 +152,30 @@ public class PositionalIndex {
     }
 
 
+    public double weight(String t, String d){
+
+        int df_t = this.invertedIndex.get(t).size();
+        int N = this.allDocs.length;
+
+        int tf_q = 0;
+        if(this.queryTermCount.get(t) != null){
+            tf_q = this.queryTermCount.get(t);
+        }
+
+        int tf_d = 0;
+        if(this.invertedIndex.get(t).get(this.allDocsHash.get(d)) != null){
+            tf_d = this.invertedIndex.get(t).get(this.allDocsHash.get(d)).size();
+        }
+
+        if(d.equals("query")){
+            return tf_q*1.0;
+        }
+        else{
+            return Math.sqrt(tf_d*1.0)*Math.log10((N*1.0)/(df_t*1.0));
+        }
+
+    }
+
     /* Returns string representation of the postings(t) */
     public String postingsList(String t){
         HashMap<Integer, ArrayList<Integer>> postings = this.invertedIndex.get(t);
@@ -233,7 +259,6 @@ public class PositionalIndex {
 
         String [] allTerms = this.invertedIndex.keySet().toArray(new String[invertedIndex.size()]);
         int N = this.allDocs.length;
-        HashMap<String,Integer> queryTermCount = new HashMap<String,Integer>();
         String [] queryTerms = getTerms(query);
         double [] Vq = new double[allTerms.length];
         double [] Vd = new double[allTerms.length];
@@ -252,20 +277,9 @@ public class PositionalIndex {
         }
 
         for(int i=0; i<allTerms.length; i++){
-            int df_t = this.invertedIndex.get(allTerms[i]).size();
 
-            int tf_q = 0;
-            if(queryTermCount.get(allTerms[i]) != null){
-                tf_q = queryTermCount.get(allTerms[i]);
-            }
-
-            int tf_d = 0;
-            if(this.invertedIndex.get(allTerms[i]).get(this.allDocsHash.get(doc)) != null){
-                tf_d = this.invertedIndex.get(allTerms[i]).get(this.allDocsHash.get(doc)).size();
-            }
-
-            Vq[i] = Math.sqrt(tf_q*1.0)*Math.log10((N*1.0)/(df_t*1.0));
-            Vd[i] = Math.sqrt(tf_d*1.0)*Math.log10((N*1.0)/(df_t*1.0));
+            Vq[i] = weight(allTerms[i],"query");
+            Vd[i] = weight(allTerms[i],doc);
 
         }
 
@@ -358,10 +372,16 @@ public class PositionalIndex {
 
         System.out.println(pi.invertedIndex);
         System.out.println("\n\n");
-        System.out.println("Size of inverted index : "+pi.invertedIndex.size());
-        double relevance = pi.Relevance("The team's primary color, blue, alludes to the former","Rockland_Boulders.txt");
+        //System.out.println("Size of inverted index : "+pi.invertedIndex.size());
+        //double relevance = pi.Relevance("The team's primary color, blue, alludes to the former","Rockland_Boulders.txt");
 
-        System.out.println("Relevance = "+relevance);
+//        int num_base = pi.invertedIndex.get("baseball").size();
+//        int num_world = pi.invertedIndex.get("world").size();
+//        int num_cup = pi.invertedIndex.get("cup").size();
+//
+//        System.out.println(num_base);
+//        System.out.println(num_world);
+//        System.out.println(num_cup);
 
     }
 
